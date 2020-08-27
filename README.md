@@ -7,9 +7,9 @@ The performance on older tasks decreases because of catastrophic forgetting.
 Small note:
 The task is defined as a regression task where the input is a flattend image and the output is the corresponding number. </br>
 Different scale is used for each subplot.</br>
-<br\>
+<br/>
 Loss different tasks
 <img src="https://github.com/MOVzeroOne/CatastrophicForgettingMLP/blob/master/plot.PNG">
-<br\>
+<br/>
 Accuracy different tasks
 <img src="https://github.com/MOVzeroOne/CatastrophicForgettingMLP/blob/master/plot1.PNG">
