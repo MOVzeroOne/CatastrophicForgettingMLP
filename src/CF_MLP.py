@@ -38,17 +38,22 @@ if __name__ == "__main__":
     network_mlp = mlp()
     optimizer = optim.Adam(network_mlp.parameters(),lr=0.001)
 
-    EPOCHS = 100 
+    EPOCHS = 80 
     tasks = 10
+    number_of_tests = 20
+
 
     fig,axis = plt.subplots(2,5)
+    fig2,axis2 = plt.subplots(2,5)
+    axis2 = axis2.flatten()
     axis = axis.flatten()
 
     for task_num in tqdm(range(tasks),desc="tasks",unit="tasks",ascii=True):
         
         x_plot = [[] for o in range(task_num+1)]
         y_plot = [[] for o in range(task_num+1)]
-        
+        x_plot2 = [[] for o in range(task_num+1)]
+        y_plot2 = [[] for o in range(task_num+1)]
 
         for i in range(EPOCHS):
             optimizer.zero_grad()
@@ -58,19 +63,45 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
             
-            
+
+
             for j in range(task_num+1):
                 input,label = dataset.online_sample(j)
                 output = network_mlp(input)
                 loss = nn.MSELoss()(output,torch.tensor([label],dtype=torch.float))
 
+                x_plot2[j].append(i)
+                y_plot2[j].append(loss.detach().item())
+            
+            for j in range(task_num+1):
+                
+                hits_and_missed = []
+                for _ in range(number_of_tests):
+                    input,label = dataset.online_sample(j)
+                    output = network_mlp(input)
+                    loss = nn.MSELoss()(output,torch.tensor([label],dtype=torch.float))
+                    if(np.around(output.detach().item()) == label):
+                        hits_and_missed.append(1)
+                    else:
+                        hits_and_missed.append(0)
+
                 x_plot[j].append(i)
-                y_plot[j].append(loss.detach().item())
+                accuracy = (np.sum(hits_and_missed)/len(hits_and_missed))*100
+                y_plot[j].append(accuracy)
             
         for index in range(task_num+1):
             axis[task_num].plot(x_plot[index],y_plot[index],label=str(index))
+            axis2[task_num].plot(x_plot2[index],y_plot2[index],label=str(index))
         
+        axis2[task_num].legend()
         axis[task_num].legend()
-        
-
+        axis2[task_num].set_ylabel("loss")
+        axis2[task_num].set_xlabel("steps current task")
+        axis2[task_num].set_title("task "+str(task_num))
+        axis[task_num].set_ylabel("accuracy")
+        axis[task_num].set_xlabel("steps current task")
+        axis[task_num].set_title("task "+str(task_num))
+    
+    fig.tight_layout(pad=0)
+    fig2.tight_layout(pad=0)
     plt.show()
